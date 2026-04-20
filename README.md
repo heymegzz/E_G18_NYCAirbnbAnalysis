@@ -120,6 +120,292 @@ Document KPI logic clearly in `notebooks/04_statistical_analysis.ipynb` and `not
 
 Store dashboard screenshots in [`tableau/screenshots/`](tableau/screenshots/) and document the public links in [`tableau/dashboard_links.md`](tableau/dashboard_links.md).
 
+### Dashboard Architecture
+
+The Tableau workbook consists of **3 interconnected dashboards** built from **22 individual sheets**, providing a complete analytical lens into the NYC Airbnb market.
+
+| Dashboard | Focus | Key Question |
+|---|---|---|
+| **Dashboard 1 — Market Overview** | Executive summary | _What does the NYC Airbnb market look like at a glance?_ |
+| **Dashboard 2 — Pricing & Revenue Analysis** | Revenue deep-dive | _Where is the money and who is making it?_ |
+| **Dashboard 3 — Demand & Host Behavior** | Engagement & hosts | _Who are the active players and how engaged is the market?_ |
+
+---
+
+### Dashboard 1 — Market Overview
+
+> **"What does the NYC Airbnb market look like at a glance?"**
+>
+> The executive summary. High-level numbers, geographic distribution, supply breakdown.
+
+| Sheet | Chart Type | Question Answered |
+|---|---|---|
+| 4 KPI BAN cards | Big Number tiles | Price, MTV, GMV, Visibility |
+| Map (symbol/filled) | Geo map | Where are listings concentrated? |
+| Room Type Distribution | Donut chart | What kind of supply exists? |
+| Market Concentration | Bar chart | Which borough dominates? |
+| Host Portfolio Segmentation | Treemap or stacked bar | Casual vs professional hosts? |
+
+#### Sheet 1: BAN — Median Nightly Price
+
+- **Rows:** `MEDIAN([Price (Cleaned)])`
+- Change mark type → **Text**
+- Format number → Currency, 0 decimal places
+- **Title:** Median Nightly Price
+- **Font:** Gill Sans, title 11pt `#717171`, number 28pt bold `#FF385C`
+- Hide axes, hide gridlines, set background `#F7F7F7`
+
+#### Sheet 2: BAN — Avg Minimum Transaction Value
+
+- **Rows:** `AVG([Minimum Transaction Value])`
+- Same formatting as Sheet 1
+- **Title:** Avg Min. Transaction Value
+
+#### Sheet 3: BAN — Total Est. Monthly GMV
+
+- **Rows:** `SUM([Est Monthly GMV])`
+- Format → Currency, abbreviated (K/M)
+- **Title:** Est. Monthly GMV
+
+#### Sheet 4: BAN — Avg Market Visibility Score
+
+- **Rows:** `AVG([Market Visibility Score])`
+- Format → Number, 2 decimal places
+- **Title:** Avg Visibility Score
+
+#### Sheet 5: Map — Listings by Price
+
+- Change sheet to **Map** view
+- Drag `Latitude` → Rows, `Longitude` → Columns
+- Tableau will auto-detect as geographic → confirm
+- Drag `Price (Cleaned)` → **Color** shelf
+- Edit color → Custom Diverging or Sequential:
+  - Start: `#FFB3C1` → End: `#C13047`
+  - ✅ Check "Use Full Color Range"
+- Drag `Name` → Tooltip
+- Drag `Neighbourhood Group` → Tooltip
+- Drag `Room Type` → Tooltip
+- Mark size → set to **3–4** (small dots, dense map)
+- Turn off map layers except **Streets & Highways** (Map → Map Layers)
+- Background: Tableau default light map; optionally switch to **Light** style
+
+#### Sheet 6: Room Type Distribution — Donut
+
+- Drag `Room Type` → Color
+- Drag `CNT(id)` → Rows → change to **Pie** mark type
+- Drag `CNT(id)` → **Angle** shelf
+- Drag `Room Type` → **Color** shelf
+- Set colors manually:
+  | Room Type | Color |
+  |---|---|
+  | Entire home/apt | `#FF385C` |
+  | Private room | `#00A699` |
+  | Shared room | `#FFB3C1` |
+- **To make it a donut:** duplicate the `CNT(id)` pill on rows → dual axis → on the second axis change mark size to very small and color it white `#FFFFFF`
+- Add `Room Type` and `CNT(id)` to label on outer pie
+
+#### Sheet 7: Market Concentration — Bar
+
+- **Columns:** `CNT([Id])`
+- **Rows:** `Neighbourhood Group`
+- Sort bars **descending** by count
+- Color all bars `#FF385C`
+- Add data labels → `#222222`, Gill Sans 10pt
+- Remove gridlines, remove axis line
+- **Title:** Listings by Borough
+
+#### Sheet 8: Host Portfolio Segmentation — Treemap
+
+- Drag `Host Portfolio Segment` → **Color** and **Label**
+- Drag `CNT([Id])` → **Size**
+- Mark type → **Square** (Treemap)
+- Colors:
+  | Segment | Color |
+  |---|---|
+  | Enterprise | `#FF385C` |
+  | Emerging | `#FF8FA3` |
+  | Single | `#FFD6DD` |
+- Add `CNT([Id])` to label as well
+- **Title:** Host Portfolio Mix
+
+---
+
+### Dashboard 2 — Pricing & Revenue Analysis
+
+> **"Where is the money and who is making it?"**
+>
+> Deep dive into price patterns, revenue proxies, and what drives high GMV listings.
+
+| Sheet | Chart Type | Question Answered |
+|---|---|---|
+| Median Price by Borough | Horizontal bar | Which borough is most expensive? |
+| Price by Room Type | Box plot or bar | Does room type drive price? |
+| Price vs Availability Scatter | Scatter | Do expensive listings stay available? |
+| Top 15 Neighbourhoods by GMV | Ranked bar | Which micro-markets earn the most? |
+| MTV Distribution | Histogram or bar | Are hosts targeting short or long stays? |
+
+#### Sheet 9: Median Price by Borough — Horizontal Bar
+
+- **Rows:** `Neighbourhood Group`
+- **Columns:** `MEDIAN([Price (Cleaned)])`
+- Sort **descending**
+- Color: single color `#FF385C`
+- Add reference line at overall median → dotted, `#717171`
+- Label bars with value
+- **Title:** Median Price by Borough
+
+#### Sheet 10: Price by Room Type — Bar
+
+- **Rows:** `Room Type`
+- **Columns:** `MEDIAN([Price (Cleaned)])`
+- Color by Room Type (use same palette as Sheet 6 donut)
+- **Title:** Median Price by Room Type
+
+#### Sheet 11: Price vs Availability Scatter
+
+- **Columns:** `AVG([Availability 365])`
+- **Rows:** `AVG([Price (Cleaned)])`
+- **Detail:** `Name` (so each dot = one listing)
+- **Color:** `Room Type` (same palette)
+- Add trend line: Analysis → Trend Lines → Show Trend Lines
+- Trend line color `#717171`, dashed
+- **Title:** Price vs Availability
+- Add reference lines at median price (horizontal) and median availability (vertical) to create **quadrants**
+
+#### Sheet 12: Top 15 Neighbourhoods by GMV — Ranked Bar
+
+- **Rows:** `Neighbourhood` → filter to Top 15 by `SUM([Est Monthly GMV])`
+  - Right-click filter → Top → By Field → Top 15 → Sum of Est Monthly GMV
+- **Columns:** `SUM([Est Monthly GMV])`
+- Sort **descending**
+- Color: gradient `#FFB3C1` → `#FF385C` based on value
+- **Title:** Top 15 Neighbourhoods by GMV
+
+#### Sheet 13: MTV Distribution — Bar
+
+- Bin `Minimum Transaction Value` into groups:
+  - Create a new calculated field:
+    ```
+    INT([Minimum Transaction Value] / 500) * 500
+    ```
+    _(creates $500 buckets)_
+- **Columns:** MTV bucket
+- **Rows:** `CNT([Id])`
+- Color: `#FF385C`
+- **Title:** Minimum Transaction Value Distribution
+
+#### Sheet 14: BAN — Avg Price (Dashboard 2)
+
+- `MEDIAN([Price (Cleaned)])` — same BAN format as Sheets 1–4
+
+#### Sheet 15: BAN — Avg MTV (Dashboard 2)
+
+- `AVG([Minimum Transaction Value])` — same BAN format as Sheets 1–4
+
+---
+
+### Dashboard 3 — Demand & Host Behavior
+
+> **"Who are the active players and how engaged is the market?"**
+>
+> Focuses on review activity as a demand proxy, host professionalism, and listing staleness.
+
+| Sheet | Chart Type | Question Answered |
+|---|---|---|
+| Review Recency Heatmap | Highlight table | Borough × Recency bucket |
+| Reviews per Month by Room Type | Bar | Which listing type gets most engagement? |
+| Host Segment × Borough | Stacked bar | Where do enterprise hosts operate? |
+| Availability vs Reviews Scatter | Scatter | Are highly available listings also reviewed? |
+| Top Hosts by GMV | Bar (top 10) | Who are the power hosts? |
+
+#### Sheet 16: Review Recency Heatmap
+
+- **Rows:** `Neighbourhood Group`
+- **Columns:** `Review Recency`
+- Mark type → **Square**
+- **Color:** `CNT([Id])`
+  - Color palette: `#FFD6DD` (low) → `#FF385C` (high)
+- Sort columns manually using `Recency Sort Order` field: **Active → Aging → Stale → Never**
+- Add `CNT([Id])` as label
+- **Title:** Review Recency by Borough
+
+#### Sheet 17: Reviews per Month by Room Type — Bar
+
+- **Rows:** `Room Type`
+- **Columns:** `AVG([Reviews Per Month])`
+- Color: `Room Type` (same categorical palette)
+- **Title:** Avg Reviews/Month by Room Type
+
+#### Sheet 18: Host Segment × Borough — Stacked Bar
+
+- **Columns:** `Neighbourhood Group`
+- **Rows:** `CNT([Id])`
+- **Color:** `Host Portfolio Segment`
+  | Segment | Color |
+  |---|---|
+  | Enterprise | `#FF385C` |
+  | Emerging | `#FF8FA3` |
+  | Single | `#FFD6DD` |
+- Mark type → Bar, **stacked**
+- **Title:** Host Mix by Borough
+
+#### Sheet 19: Availability vs Reviews Scatter
+
+- **Columns:** `AVG([Availability 365])`
+- **Rows:** `AVG([Number Of Reviews])`
+- **Detail:** `Name`
+- **Color:** `Host Portfolio Segment` (same palette)
+- **Title:** Availability vs Review Volume
+
+#### Sheet 20: Top 10 Hosts by GMV — Bar
+
+- **Rows:** `Host Name`
+- **Filter:** Top 10 by `SUM([Est Monthly GMV])`
+- **Columns:** `SUM([Est Monthly GMV])`
+- **Color:** `Host Portfolio Segment`
+- Sort **descending**
+- **Title:** Top 10 Hosts by Revenue
+
+#### Sheet 21: BAN — Avg Visibility Score (Dashboard 3)
+
+- `AVG([Market Visibility Score])` — same BAN format as Sheets 1–4
+
+#### Sheet 22: BAN — Total Reviews (Dashboard 3)
+
+- `SUM([Number Of Reviews])` — same BAN format as Sheets 1–4
+
+---
+
+### 🏗️ Dashboard Assembly (Phase 5)
+
+> Complete all 22 sheets before assembling dashboards.
+
+**For each dashboard, follow these steps:**
+
+1. **Canvas Setup**
+   - New Dashboard → set size to **Fixed, 1200 × 900 px**
+
+2. **Header Strip**
+   - Drag a **Blank** object as header strip (height **60 px**)
+   - Fill: `#FF385C`
+   - Add **Text** object with dashboard title in **white, Gill Sans Bold**
+
+3. **KPI Row**
+   - Drop BAN sheets in a **horizontal container** row (equal width)
+   - Background: `#F7F7F7`
+
+4. **Chart Layout**
+   - Drop chart sheets into **tiled layout** below the KPI row
+
+5. **Filter Controls**
+   - Add filter controls for `Neighbourhood Group` and `Room Type`
+   - Position as **floating pills**, top-right
+   - Style with border `#DDDDDD`
+
+6. **Navigation Buttons**
+   - Insert → Button → set link to target dashboard sheet
+   - Style with `#FF385C` background for inter-dashboard navigation
+
 ---
 
 ## Key Insights
@@ -309,4 +595,4 @@ All analysis, code, and recommendations in this repository must be the original 
 ## Color Theme
 
 Pink accent foreground color: #FF385C
-Background color: #fff
+Background color: #fff 
