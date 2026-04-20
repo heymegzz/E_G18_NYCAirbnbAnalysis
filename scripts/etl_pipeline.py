@@ -68,10 +68,14 @@ def convert_types(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def fill_missing(df: pd.DataFrame) -> pd.DataFrame:
-    df['name']              = df['name'].fillna('Unknown Listing')
-    df['host_name']         = df['host_name'].fillna('Unknown Host')
-    df['last_review']       = df['last_review'].fillna(pd.Timestamp('1900-01-01'))
+    # Text placeholders for the two minor string nulls
+    df['name']      = df['name'].fillna('Unknown Listing')
+    df['host_name'] = df['host_name'].fillna('Unknown Host')
+    # review_rate_month → 0.0: listings with 0 reviews genuinely have 0 reviews/month
     df['review_rate_month'] = df['review_rate_month'].fillna(0.0)
+    # last_review → LEFT AS NaT (do NOT fill with a sentinel date).
+    # Tableau and pandas exclude NaT from date axes, filters, and trend lines
+    # automatically. A sentinel like 1900-01-01 would corrupt date visuals.
     return df
 
 
@@ -117,9 +121,9 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
         include_lowest=True
     ).astype('category')
 
-    real_mask = df['last_review'] > pd.Timestamp('1900-01-01')
-    df['review_year']  = df['last_review'].dt.year.where(real_mask, other=np.nan)
-    df['review_month'] = df['last_review'].dt.month.where(real_mask, other=np.nan)
+    # review_year / review_month: NaT rows propagate as NaN automatically
+    df['review_year']  = df['last_review'].dt.year
+    df['review_month'] = df['last_review'].dt.month
 
     return df
 
