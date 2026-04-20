@@ -303,3 +303,10 @@ All analysis, code, and recommendations in this repository must be the original 
 ---
 
 *Newton School of Technology - Data Visualization & Analytics | Capstone 2*
+
+
+
+## Color Theme
+
+Pink accent foreground color: #FF385C
+Background color: #fff
