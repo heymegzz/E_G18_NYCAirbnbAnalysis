@@ -1,6 +1,6 @@
 # NYC Airbnb 2019 Data Dictionary
 
-This document provides a comprehensive overview of the New York City Airbnb Open Data (2019). It includes field definitions, technical specifications, and calculations for key performance indicators (KPIs) used in the analysis and dashboard.
+This document provides a comprehensive overview of the New York City Airbnb Open Data (2019). It includes field definitions, technical specifications, and calculations for advanced KPIs used in the Tableau Dashboard.
 
 ## Dataset Summary
 
@@ -8,60 +8,49 @@ This document provides a comprehensive overview of the New York City Airbnb Open
 |---|---|
 | Dataset name | New York City Airbnb Open Data (2019) |
 | Source | Kaggle / Inside Airbnb |
-| Raw file name | `AB_NYC_2019.csv` |
-| Last updated | 2019-08-12 (Snapshot) |
-| Volume | 48,895 listings |
+| Volume | 48,884 listings (Post-Cleaning) |
 | Granularity | One row per unique Airbnb listing |
 
-## Column Definitions
+## 1. Primary Feature Definitions
 
-| Column Name | Data Type | Description | Example Value | Used In | Cleaning Notes |
-|---|---|---|---|---|---|
-| `id` | `int` | Unique listing identifier | `2539` | Joins / ID | Primary Key. No duplicates. |
-| `name` | `string` | Name of the listing | `Clean & quiet apt home` | Search / Text Analysis | 16 missing values. |
-| `host_id` | `int` | Unique identifier for the host | `2787` | Aggregations | Used for grouping by host. |
-| `host_name` | `string` | Name of the host | `John` | Identification | 21 missing values. |
-| `neighbourhood_group` | `string` | The borough where the listing is located | `Brooklyn` | Filters / Drill-down | 5 unique values (Manhattan, Brooklyn, etc.) |
-| `neighbourhood` | `string` | The specific neighborhood area | `Kensington` | Geo Analysis | 221 unique values. |
-| `latitude` | `float` | Geographic coordinate (North-South) | `40.64749` | Maps | Ready for GIS visualization. |
-| `longitude` | `float` | Geographic coordinate (East-West) | `-73.97237` | Maps | Ready for GIS visualization. |
-| `room_type` | `string` | Type of accommodation offered | `Private room` | Segment Analysis | Entire home/apt, Private room, Shared room. |
-| `price` | `int` | Price per night in USD | `149` | KPIs / Price Analysis | Contains 11 records with `$0` price. |
-| `minimum_nights` | `int` | Minimum number of nights for stay | `1` | Booking Analysis | Outliers exist (max: 1,250). |
-| `number_of_reviews` | `int` | Total lifetime reviews for the listing | `9` | Demand Analysis | Ranges from 0 to 629. |
-| `last_review` | `date` | Date of the latest review received | `2018-10-19` | Recency Analysis | 10,052 nulls (listings with 0 reviews). |
-| `reviews_per_month` | `float` | Average reviews per month | `0.21` | KPI / Demand | 10,052 nulls. Impute with 0 if needed. |
-| `calculated_host_listings_count` | `int` | Total listings managed by this host | `6` | Professionalism | Measure of host scale. |
-| `availability_365` | `int` | Available days in a year (out of 365) | `365` | KPI / Supply | Values range from 0 to 365. |
+| Column Name | Data Type | Description | Cleaning / Preparation |
+|---|---|---|---|
+| `Listing ID` | `int` | Unique identifier for the listing | Primary Key |
+| `Listing Title` | `string` | Name/Title of the property | Trimmed; Nulls filled as "Unknown" |
+| `Host ID` | `int` | Unique identifier for the property owner | - |
+| `Host Name` | `string` | Name of the host | Trimmed; Nulls filled as "Unknown" |
+| `Borough` | `category` | The NYC borough (Neighbourhood Group) | Manhattan, Brooklyn, etc. |
+| `Neighborhood` | `category` | The specific local area | 221 unique areas |
+| `Latitude` | `float` | GPS Latitude | - |
+| `Longitude` | `float` | GPS Longitude | - |
+| `Room Type` | `category` | Accommodation category | Entire home, Private room, Shared |
+| `Price` | `int` | Nightly rate in USD | Capped at 99th percentile ($799) |
+| `Min Nights` | `int` | Minimum stay requirement | Capped at 365 |
+| `Total Reviews` | `int` | Lifetime review count | - |
+| `Last Review` | `date` | Date of the most recent guest review | NaT for zero-review listings |
+| `Reviews per Month` | `float` | Monthly demand frequency | Nulls filled as 0.0 |
+| `Host Listings` | `int` | Total listings managed by this host | Used for portfolio segmentation |
+| `Availability` | `int` | Days available per year | 0-365 range |
 
-## Analytical Framework & KPI Definitions
+## 2. Advanced Analytical KPIs (Tableau Master Layer)
 
-This section defines the metrics used to measure market performance, host behavior, and demand patterns in the NYC Airbnb ecosystem.
-
-### 1. Pricing & Revenue Metrics
-| Metric Name | Logic/Calculation | Business Rationale |
+| Metric | Formula | Business Rationale |
 |---|---|---|
-| **Median Nightly Price** | `Median(price)` | Preferred over average price to mitigate the skewness caused by extreme luxury listings and potential data entry errors ($0 listings). |
-| **Minimum Transaction Value (MTV)** | `price * minimum_nights` | Represents the lowest financial commitment required for a stay. Higher MTVs indicate long-term rental patterns or high-barrier luxury stays. |
-| **Estimated Monthly GMV (Revenue Proxy)** | `price * (reviews_per_month * 1.5)` | Estimates monthly listing performance based on a review-to-stay conversion factor (Industry proxy: 1 review per 1.5 stays). |
+| **Listing Demand Score** | `Reviews per Month * (Availability / 365)` | Normalizes booking frequency against annual availability. This is the primary indicator of listing "stickiness" and actual demand throughput. |
+| **Price Index** | `Price / Neighborhood Median Price` | Benchmarks a listing against its immediate micro-market. A value > 1.0 indicates a premium pricing strategy; < 1.0 indicates a value strategy. |
+| **Revenue Proxy** | `Price * Availability` | Estimates the theoretical maximum annual earnings based on current pricing and supply. |
+| **Yield Potential** | `Revenue Proxy / Price` | Measures how efficiently a listing converts its nightly rate into total annual earning potential. |
 
-### 2. Demand & Engagement Metrics
-| Metric Name | Logic/Calculation | Business Rationale |
+## 3. Segmentation Dimensions
+
+| Dimension | Logic | Dashboard Use |
 |---|---|---|
-| **Market Visibility Score** | `reviews_per_month * (availability_365 / 365)` | Normalizes review frequency against the listing's annual availability. Identifies high-performing active listings versus seasonal or inactive ones. |
-| **Review Recency Index** | Categorization of `last_review` | Distinguishes between active market participants and "stale" listings that may no longer be operational. |
+| **Host Segment** | `Single (1)`, `Emerging (2-5)`, `Enterprise (>5)` | Filters to compare individual hosts vs professional property managers. |
+| **Recent Activity** | `Active` (2019), `Trailing` (2018), `Dormant` (<2018) | Helps identify current market sentiment vs legacy data points. |
+| **Price Tier** | `Budget`, `Mid-Range`, `Premium`, `Luxury` | Quartile-based price grouping for high-level market summaries. |
+| **Seasonality Peak** | `Summer Peak` (Jun-Aug), `Off-Peak` (Other) | Identifies stays originating during NYC's highest tourism period. |
 
-### 3. Supply & Host Portfolio Metrics
-| Metric Name | Logic/Calculation | Business Rationale |
-|---|---|---|
-| **Host Portfolio Segmentation** | `CASE WHEN host_listings == 1 THEN 'Single' WHEN host_listings <= 5 THEN 'Emerging' ELSE 'Enterprise' END` | Profiles the supply side to understand the ratio of casual home-sharers to professional management entities. |
-| **Market Concentration Index** | `Count(id)` by `neighbourhood_group` | Measures supply density across boroughs to identify saturated markets versus underserved niche areas. |
-
-## Data Integrity & Pre-processing Considerations
-
-The following observations are critical for ensuring the validity of analysis and dashboard visualizations:
-
-- **Review Signal Sparsity**: Approximately **20.5% (10,052)** of listings have zero reviews. In demand modeling, these records should be categorized as 'Unverified' or 'New Market Entries' to avoid dragging down monthly averages.
-- **Price Anomaly Handling**: Records with a price of **$0 (11 total)** are considered data integrity issues and must be excluded from all pricing aggregations.
-- **Supply Logic (Availability)**: An `availability_365` value of `0` does not always indicate 100% occupancy; it may represent blocked calendars or inactive IDs. Cross-referencing with `last_review` is required to confirm listing status.
-- **Regulatory Outliers**: Listings with `minimum_nights > 30` often fall under different NYC housing regulations (long-term leases). Analysts should segment these from "short-term" vacation rental data.
+## Data Audit Notes
+- **Zero-Price Removal**: 11 records removed during ETL ($0 rates).
+- **Physical Bounds**: Listings with > 365 minimum nights were capped to 365 to normalize for annual calculations.
+- **Null Ethics**: `last_review` remains as a null date (NaT) to ensure Tableau time-series filters do not include phantom "1900" dates.
