@@ -130,7 +130,7 @@ The raw file is committed to `data/raw/` so the pipeline runs without external d
 |---|---|---|
 | Meghna Nair | `heymegzz` | Team Lead, EDA and Analysis |
 | Aditya Rao | | Dataset and Sourcing |
-| Shreyansh Agarwal | `BLOODWYROM` | ETL and Cleaning |
+| Shreyansh Agarwal | `agrawalshreyansh` | ETL and Cleaning |
 | Khyati Batra | `khyatibatra0316` | Statistical Analysis |
 | Kunal Vats | `1Kunalvats9` | Tableau Dashboard |
 | Sarvesh Srinath | `sarveshcore` | Report Writing, PPT and Viva |
