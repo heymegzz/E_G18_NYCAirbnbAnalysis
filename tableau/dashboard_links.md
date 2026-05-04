@@ -6,7 +6,7 @@ Use this file to store the final public links for your Tableau deliverables.
 
 | Item | Link | Notes |
 |---|---|---|
-| Tableau Public Dashboard | [_Paste URL here_](https://public.tableau.com/views/Dashboards_17774866991220/LocationMarketOverview?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link) |[ _Main submission link_ ](https://public.tableau.com/views/Dashboards_17774866991220/LocationMarketOverview?:language=en-US&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link)|
+| Tableau Public Dashboard | [_[Paste URL here](https://public.tableau.com/app/profile/khyati.batra6677/viz/Dashboards_17774866991220/LocationMarketOverview?publish=yes)_] |[ _Main submission link_ ](https://public.tableau.com/app/profile/khyati.batra6677/viz/Dashboards_17774866991220/LocationMarketOverview?publish=yes)|
 | Workbook / Story Link | _Paste URL here if applicable_ | _Optional_ |
 | Demo Recording | _Paste URL here if applicable_ | _Optional_ |
 
